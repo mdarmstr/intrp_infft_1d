@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import nfft as nfft
 import matplotlib.pyplot as plt
+import imageio
 
 def nfft_inverse(x, y, N, w = 1, maxiter=100,eps=1e-3):
     res = []
@@ -36,7 +37,9 @@ def create_frame(iter):
 df = pd.read_csv('T.Suelo.csv')
 Ln = df.shape[0]
 smplR = 1800
-t = np.arange(0,Ln*smplR,smplR)
+t = np.linspace(-0.5,0.5,Ln,endpoint=False)
+fr = np.fft.fftfreq(Ln,d=smplR)
+fr = np.fft.fftshift(fr).copy()
 
 data = df.iloc[:,1].to_numpy()
 f_hat = data[data != -9999].copy()
@@ -50,12 +53,11 @@ x = (t - np.min(t)) / (np.max(t) - np.min(t)) -0.5
 x = x[data != -9999].copy()
 x = x[:-1].copy()
 
-# x = -0.5 + np.random.rand(10000)
+# N = 1024
+# x = -0.5 + np.random.rand(N)
+# f_hat = np.sin(10 * 2 * np.pi * x) + .1*np.random.randn( N ) #Add some  'y' randomness to the sample
 
-# # define Fourier coefficients
-# N = 10000
 # k = - N // 2 + np.arange(N)
-# f_hat = np.random.randn(N)
 
 #f = nfft.nfft(x, f_hat)
 h_hat,res = nfft_inverse(x, f_hat, len(x), maxiter = 2000,eps=5e-3)
