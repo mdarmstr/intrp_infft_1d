@@ -25,6 +25,10 @@ def nfft_inverse(x, y, N, w = 1, maxiter=100,eps=1e-3):
         iter += 1
     return f, res
 
+def create_frame(l):
+    plt.savefig(f'./img/img_{l}.png',transparent=False,facecolor='white')
+    plt.close()
+
 df = pd.read_csv('T.Suelo.csv')
 Ln = df.shape[0]
 smplR = 1800
