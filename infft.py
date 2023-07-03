@@ -23,9 +23,13 @@ def nfft_inverse(x, y, N, w = 1, maxiter=100,eps=1e-3):
         res.append(r_norm) 
         print(iter, ' {:.5E}'.format(r_norm),' {:.5E}'.format(r_norm-r_norm_2))
         iter += 1
+        plt.plot(r)
+        plt.plot(nfft.nfft(x,f) / len(x))
+        plt.title(f'Iteration {iter}')
+        create_frame(iter)
     return f, res
 
-def create_frame(l):
+def create_frame(iter):
     plt.savefig(f'./img/img_{l}.png',transparent=False,facecolor='white')
     plt.close()
 
