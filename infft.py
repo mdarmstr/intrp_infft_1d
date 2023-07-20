@@ -1,62 +1,9 @@
-import pandas as pd
 import numpy as np
-import nfft as nfft
+import pandas as pd
+from nfft import nfft as nfft
+from nfft import nfft_adjoint as adjoint
+import scipy.optimize
 import matplotlib.pyplot as plt
-import imageio
-
-#(c) Universidad de Granada, Michael Sorochan Armstrong, Jos\'e Camacho 2023.
-
-def nfft_inverse(x, y, N, w = 1, maxiter = 5000, eps = 1e-3, is_verbose = True, create_gif = False):
-    
-    res = []
-    nnz = N
-    f = np.zeros(N, dtype=np.complex128)
-
-    r = y - nfft.nfft(x,f) / nnz   
-    p = nfft.nfft_adjoint(x, r, N)
-    r_norm = np.linalg.norm(r)
-    r_norm_2 = 0
-    iter = 0
-
-    while np.abs(r_norm - r_norm_2) > eps:
-        if iter > 0:
-            r_norm = r_norm_2
-        
-        p_norm = np.linalg.norm(p * w)
-        alpha = r_norm / p_norm
-        f += alpha * w * p
-        r = y - nfft.nfft(x, f) / nnz #When this was f, it was converging to a reasonable solution, contrary to the paper. Is it contrary to the paper?
-        r_norm_2 = np.linalg.norm(r)
-        beta = r_norm_2 / r_norm
-        p = beta * p + nfft.nfft_adjoint(x, r, N)
-        res.append(r_norm)
-        
-        if is_verbose == True: 
-            print(iter, ' {:.5E}'.format(r_norm),' {:.5E}'.format(np.abs(r_norm-r_norm_2)))
-        
-        if create_gif == True:
-            plt.plot(r,alpha=0.25)
-            plt.plot(nfft.nfft(x,f) / len(x), alpha = 0.75)
-            plt.ylim((min(y),max(y)))
-            plt.title(f'iNFFT Iteration {iter}')
-            create_frame(iter)
-
-        iter += 1
-    
-    if create_gif == True:
-        frames = []
-
-        for t in range(iter):
-            image = imageio.v2.imread(f'./img/img_{t}.png')
-            frames.append(image)
-        
-        imageio.mimsave('./output.gif', frames, duration = 0.01)
-
-    return f, res
-
-def create_frame(iter):
-    plt.savefig(f'./img/img_{iter}.png',transparent=False,facecolor='white')
-    plt.close()
 
 def change_last_true_to_false(arr):
     arr = np.asarray(arr)
@@ -66,40 +13,87 @@ def change_last_true_to_false(arr):
         arr[last_true_index] = False
     return arr
 
-#We need to perform the inverse transform first, before performing the reconstruction.
-#np.save(file, arr, allow_pickle=True, fix_imports=True)
+def fjr(x,N):
+    w = (np.divide(2*(1 + np.exp(-2 * np.pi * 1j * x)),N ** 2) * (np.sin((N/2) * np.pi * x) / np.sin(np.pi * x)) ** 2)
+    w[N // 2] = 1
+    return w
+
+def nat_norm(f,w):
+    return np.sum(abs(f)**2 / w)
+
+def infft(x, y, N, w=1, f0 = None, maxiter = 10, L=10, tol = 1e-16, is_verbose = True):
+    
+    res = []
+
+    if f0 is None:
+        f = np.zeros(N,dtype=np.complex128)
+    else:
+        f = f0.copy()
+    
+    r = y - nfft(x, f) / N
+    p = adjoint(x,r,N) 
+
+    rnm1 = np.linalg.norm(r) ** 2
+    rnm2 = 0
+    nat1 = np.linalg.norm(f*w)
+    nat2 = 0
+    iter = 0
+
+    while np.abs(nat1 - nat2) > tol and iter < maxiter:
+        if iter > 0:
+            nat1 = nat2
+        
+        pnm = np.linalg.norm(p * w) ** 2
+        alf = rnm1 / pnm
+        f += alf * w * p
+        r = y - nfft(x, f) / N
+        rnm2 = np.linalg.norm(r) ** 2
+        bta = rnm2 / rnm1
+        p = bta * p + adjoint(x,r, N)
+        nat2 = np.linalg.norm((f - f0) * w)
+
+        res.append(nat2)
+
+        if is_verbose == True: 
+            print(iter, ' {:.5E}'.format(nat2),' {:.5E}'.format(nat1 - nat2))
+
+        iter += 1
+
+    return f, r, res
 
 df = pd.read_csv('T.Suelo.csv')
 Ln = df.shape[0]
 smplR = 1800
 data_raw = df.iloc[0:,1:].to_numpy() #keep the missing values
 inverse_mat = np.zeros_like(data_raw,dtype="complex128")
-
+residue_mat = np.zeros_like(data_raw,dtype="float64")
+rec_mat = np.zeros_like(data_raw,dtype="float64")
 mni = np.zeros((df.shape[1]-1,1))
 #data_raw, Ln = ensure_even(data_raw, Ln)
 t = np.linspace(-0.5,0.5,Ln,endpoint=False)
 
-for ii in range(df.shape[0]-1):
-    idx = data_raw[:,ii] != -9999
-    if sum(idx) % 2 != 0:
-        idx = change_last_true_to_false(idx)
-        Ln = sum(idx)
-    else:
-        Ln = sum(idx)
+y = data_raw[:,0]
+idx = y != -9999
 
-    f_hat = data_raw[idx,ii] - np.mean(data_raw[idx,ii])
-    x = t[idx]
+idx = change_last_true_to_false(idx)
+Ln = sum(idx)
+x = t[idx]
 
-    w = np.ones_like(f_hat)
-    w /= sum(w)
+N = 256
+w = fjr(np.linspace(-N/2, N/2,N,endpoint=False),N)
 
-    h_hat,res = nfft_inverse(x, f_hat, Ln, w = 1, maxiter = 2000, eps=5e-3, create_gif=False)
-        
-    inverse_mat[idx,ii] = h_hat
-    print(ii)
+mn = np.mean(y[idx])
 
-np.save("inverse_mat.npy", inverse_mat)
-print("finished")
-    
+f0 = adjoint(x,y[idx], N)
+
+f, r, res = infft(x, y[idx], N, w = w, f0=f0, maxiter = 15, tol = 1e-8) 
+
+#plt.plot(nfft(x,f) / Ln + mn)
+plt.plot(x,y[idx])
+#plt.plot(res)
+plt.plot(t, nfft(t,f) / Ln)
+#plt.plot(f)
+
+plt.show()
 
 
