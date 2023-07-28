@@ -33,7 +33,7 @@ def plot_res(data,mt,outliers):
         idx_outs = np.logical_and(idx,outliers[:,ii])
         plt.scatter(x[idx_norm],data[idx_norm,ii],sz[idx_norm],marker=",")
         plt.scatter(x[idx_outs],data[idx_outs,ii],sz[idx_outs],marker=",")
-        plt.plot(x,mt[:,ii])
+        plt.plot(x,mt[:,ii],color="tab:purple",alpha=0.75)
         plt.show()
         print("hello")
         plt.close()
@@ -42,7 +42,7 @@ mt = np.load("rec_mat.npy")
 rw = np.load("data_raw.npy")
 
 res = get_res_mat(mt,rw)
-otlrs = analyse_res(res,p=0.5)
+otlrs = analyse_res(res,p=0.05)
 
 plot_res(rw,mt,otlrs)
 

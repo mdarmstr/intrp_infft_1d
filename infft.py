@@ -18,7 +18,8 @@ def change_last_true_to_false(arr):
 
 def fjr(x,N):
     w = (np.divide(2*(1 + np.exp(-2 * np.pi * 1j * x)),N ** 2) * (np.sin((N/2) * np.pi * x) / np.sin(np.pi * x)) ** 2)
-    w[N // 2] = 1
+    w[x.shape[0] // 2] = 1
+    #w /= sum(w)
     return w
 
 def nat_norm(f,w):
@@ -38,21 +39,21 @@ def infft(x, y, N, w=1, f0 = None, maxiter = 10, L=10, tol = 1e-16, is_verbose =
     else:
         f = f0.copy()
     
-    r = y - nfft(x, f) / nnz
+    r = y - nfft(x, f) / N
     p = adjoint(x,r,N) 
 
     rnm1 = np.linalg.norm(r) ** 2
     rnm2 = 0
     iter = 0
 
-    while np.abs(rnm1 - rnm2) / rnm1 > tol and iter < maxiter:
+    while np.abs(rnm1 - rnm2) > tol and iter < maxiter:
         if iter > 0:
             rnm1 = rnm2
         
         pnm = np.linalg.norm(p * w) ** 2
         alf = rnm1 / pnm
-        f += alf * w * p
-        r = y - nfft(x, f) / nnz
+        f += alf * (w * p)
+        r = y - nfft(x, f * w) / N
         rnm2 = np.linalg.norm(r) ** 2
         bta = rnm2 / rnm1
         p = bta * p + adjoint(x,r, N)
@@ -61,7 +62,7 @@ def infft(x, y, N, w=1, f0 = None, maxiter = 10, L=10, tol = 1e-16, is_verbose =
         res.append(rnm2)
 
         if is_verbose == True: 
-            print(iter, ' {:.5E}'.format(rnm2),' {:.5E}'.format((rnm1 - rnm2)/rnm1))
+            print(iter, ' {:.5E}'.format(rnm2),' {:.5E}'.format(np.abs((rnm1 - rnm2))))
         
         if create_gif == True:
             plt.plot(r,alpha=0.25)
@@ -93,10 +94,12 @@ residue_mat = np.zeros_like(data_raw,dtype="float64")
 rec_mat = np.zeros_like(data_raw,dtype="float64")
 mni = np.zeros((df.shape[1]-1,1))
 #data_raw, Ln = ensure_even(data_raw, Ln)
-t = np.linspace(-0.5,0.5,Ln,endpoint=False)
-mn = []
 N = 500
+t = np.linspace(-0.5,0.5,Ln,endpoint=False)
+tf = np.linspace(-0.5,0.5,N,endpoint=False)
+mn = []
 inverse_mat = np.zeros((N,df.shape[1]-1),dtype="complex128")
+w = fjr(tf,N)
 
 for ii in range(df.shape[1]-1):
     idx = data_raw[:,ii] != -9999
@@ -111,7 +114,7 @@ for ii in range(df.shape[1]-1):
     
     f0 = adjoint(x,data_raw[idx,ii] - mn[ii], N)
 
-    h_hat, r, res = infft(x, data_raw[idx,ii] - mn[ii], N, f0=f0, w = 1, maxiter = 50, tol = 1e-7, create_gif=False)
+    h_hat, r, res = infft(x, data_raw[idx,ii] - mn[ii], N, f0=None, w = w, maxiter = 500, tol = 1e-7, create_gif=False)
         
     inverse_mat[:,ii] = h_hat
     print(ii)
