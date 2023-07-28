@@ -95,7 +95,7 @@ mni = np.zeros((df.shape[1]-1,1))
 #data_raw, Ln = ensure_even(data_raw, Ln)
 t = np.linspace(-0.5,0.5,Ln,endpoint=False)
 mn = []
-N = 48
+N = 500
 inverse_mat = np.zeros((N,df.shape[1]-1),dtype="complex128")
 
 for ii in range(df.shape[1]-1):
@@ -117,9 +117,11 @@ for ii in range(df.shape[1]-1):
     print(ii)
 
 print("inverse NFFTs complete")
-k = 5
-U, S, V = np.linalg.svd(inverse_mat)
-rec_inv = (U[:,:k]*S[:k]) @ V[:,:k].T
+#k = 10
+#mnk = np.mean(inverse_mat,axis=0)
+#U, S, V = np.linalg.svd(inverse_mat - mnk)
+#rec_inv = (U[:,:k]*S[:k]) @ V[:,:k].T + mnk
+rec_inv = inverse_mat.copy()
 
 # Reconstructing the data, measuring the residuals
 for ii in range(df.shape[1]-1):
