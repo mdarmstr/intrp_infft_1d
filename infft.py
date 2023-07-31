@@ -16,11 +16,22 @@ def change_last_true_to_false(arr):
         arr[last_true_index] = False
     return arr
 
-def fjr(x,N):
+def fjr(N):
+    x = np.linspace(-1/2,1/2,N,endpoint=False)
     w = (np.divide(2*(1 + np.exp(-2 * np.pi * 1j * x)),N ** 2) * (np.sin((N/2) * np.pi * x) / np.sin(np.pi * x)) ** 2)
+    #w = (1/N**2) *(np.sin((N/2) * x) / np.sin(x/2)) ** 2
     w[x.shape[0] // 2] = 1
+    
+    # for n in np.arange(20,500,5):
+    #     w1 = (np.divide(2*(1 + np.exp(-2 * np.pi * 1j * x)),n ** 2) * (np.sin((n/2) * np.pi * x) / np.sin(np.pi * x)) ** 2)
+    #     w1[x.shape[0] // 2] = 1
+    #     plt.plot(w1)
+    # plt.show()
+    
     #w /= sum(w)
     return w
+    
+
 
 def nat_norm(f,w):
     return np.sum(abs(f)**2 / w)
@@ -39,22 +50,25 @@ def infft(x, y, N, w=1, f0 = None, maxiter = 10, L=10, tol = 1e-16, is_verbose =
     else:
         f = f0.copy()
     
-    r = y - nfft(x, f) / N
+    r = y - nfft(x, f)/nnz
     p = adjoint(x,r,N) 
 
     rnm1 = np.linalg.norm(r) ** 2
+    #rnm1 = np.sum(np.abs(r) ** 2)
     rnm2 = 0
     iter = 0
 
     while np.abs(rnm1 - rnm2) > tol and iter < maxiter:
         if iter > 0:
             rnm1 = rnm2
-        
-        pnm = np.linalg.norm(p * w) ** 2
+            
+        pnm = np.linalg.norm(p * w **0.5) ** 2
+        #pnm = np.sum(np.real(p ** 2 * w))
         alf = rnm1 / pnm
-        f += alf * (w * p)
-        r = y - nfft(x, f * w) / N
+        f += alf * w * p
+        r = y - nfft(x, f * w) / nnz
         rnm2 = np.linalg.norm(r) ** 2
+        #rnm2 = np.sum(np.abs(r) ** 2)
         bta = rnm2 / rnm1
         p = bta * p + adjoint(x,r, N)
         #nat2 = np.linalg.norm((f - f0) * w)
@@ -66,7 +80,7 @@ def infft(x, y, N, w=1, f0 = None, maxiter = 10, L=10, tol = 1e-16, is_verbose =
         
         if create_gif == True:
             plt.plot(r,alpha=0.25)
-            plt.plot(nfft(x,f) / len(x), alpha = 0.75)
+            plt.plot(nfft(x,f) / nnz, alpha = 0.75)
             plt.ylim((min(y),max(y)))
             plt.title(f'iNFFT Iteration {iter}')
             create_frame(iter)
@@ -99,7 +113,7 @@ t = np.linspace(-0.5,0.5,Ln,endpoint=False)
 tf = np.linspace(-0.5,0.5,N,endpoint=False)
 mn = []
 inverse_mat = np.zeros((N,df.shape[1]-1),dtype="complex128")
-w = fjr(tf,N)
+w = fjr(N)
 
 for ii in range(df.shape[1]-1):
     idx = data_raw[:,ii] != -9999
@@ -114,7 +128,7 @@ for ii in range(df.shape[1]-1):
     
     f0 = adjoint(x,data_raw[idx,ii] - mn[ii], N)
 
-    h_hat, r, res = infft(x, data_raw[idx,ii] - mn[ii], N, f0=None, w = w, maxiter = 500, tol = 1e-7, create_gif=False)
+    h_hat, r, res = infft(x, data_raw[idx,ii] - mn[ii], N, f0=None, w = 1, maxiter = 50, tol = 1e-7, create_gif=False)
         
     inverse_mat[:,ii] = h_hat
     print(ii)
