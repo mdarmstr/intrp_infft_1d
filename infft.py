@@ -46,41 +46,42 @@ def infft(x, y, N, w=1, f0 = None, maxiter = 10, L=10, tol = 1e-16, is_verbose =
     nnz = x.shape[0]
 
     if f0 is None:
-        f = np.zeros(N,dtype=np.complex128)
+        f = adjoint(x,y,N) #do not put zeros here, it messes up the initialisation
     else:
         f = f0.copy()
     
-    r = y - nfft(x, f)/nnz
-    p = adjoint(x,r,N) 
+    r = y - nfft(x, f * w) / nnz
+    p = adjoint(x,r,N)
+    #f = np.zeros_like(p,dtype="complex128") #But if I reinitialise it as zero, it's not really learning. It's just resting on the adjoint transform.
 
-    rnm1 = np.linalg.norm(r) ** 2
-    #rnm1 = np.sum(np.abs(r) ** 2)
+    #rnm1 = np.linalg.norm(r) ** 2
+    rnm1 = np.sum(np.abs(r) ** 2)
     rnm2 = 0
     iter = 0
 
-    while np.abs(rnm1 - rnm2) > tol and iter < maxiter:
+    while np.abs(rnm1 - rnm2) / rnm1 > tol and iter < maxiter:
         if iter > 0:
             rnm1 = rnm2
             
-        pnm = np.linalg.norm(p * w **0.5) ** 2
-        #pnm = np.sum(np.real(p ** 2 * w))
+        #pnm = np.linalg.norm(np.abs(p)*w**0.5) ** 2
+        pnm = np.sum(np.abs(p) **2 * w)
         alf = rnm1 / pnm
         f += alf * w * p
-        r = y - nfft(x, f * w) / nnz
-        rnm2 = np.linalg.norm(r) ** 2
-        #rnm2 = np.sum(np.abs(r) ** 2)
+        r -= alf * nfft(x, p * w) / nnz # Something strange going on with the residuals. But making some progress.
+        #rnm2 = np.linalg.norm(r) ** 2
+        rnm2 = np.sum(np.abs(r) ** 2)
         bta = rnm2 / rnm1
-        p = bta * p + adjoint(x,r, N)
+        p = bta * p + adjoint(x,r, N) 
         #nat2 = np.linalg.norm((f - f0) * w)
 
         res.append(rnm2)
 
         if is_verbose == True: 
-            print(iter, ' {:.5E}'.format(rnm2),' {:.5E}'.format(np.abs((rnm1 - rnm2))))
+            print(iter, ' {:.5E}'.format(rnm2),' {:.5E}'.format(np.abs((rnm1 - rnm2)/rnm1)),' {:.4F}'.format(alf),' {:.4F}'.format(bta))
         
         if create_gif == True:
             plt.plot(r,alpha=0.25)
-            plt.plot(nfft(x,f) / nnz, alpha = 0.75)
+            plt.plot(nfft(x,f*w), alpha = 0.75)
             plt.ylim((min(y),max(y)))
             plt.title(f'iNFFT Iteration {iter}')
             create_frame(iter)
@@ -108,7 +109,7 @@ residue_mat = np.zeros_like(data_raw,dtype="float64")
 rec_mat = np.zeros_like(data_raw,dtype="float64")
 mni = np.zeros((df.shape[1]-1,1))
 #data_raw, Ln = ensure_even(data_raw, Ln)
-N = 500
+N = 64
 t = np.linspace(-0.5,0.5,Ln,endpoint=False)
 tf = np.linspace(-0.5,0.5,N,endpoint=False)
 mn = []
@@ -128,8 +129,11 @@ for ii in range(df.shape[1]-1):
     
     f0 = adjoint(x,data_raw[idx,ii] - mn[ii], N)
 
-    h_hat, r, res = infft(x, data_raw[idx,ii] - mn[ii], N, f0=None, w = 1, maxiter = 50, tol = 1e-7, create_gif=False)
-        
+    h_hat, r, res = infft(x, data_raw[idx,ii] - mn[ii], N, f0=None, w = w, maxiter = 100, tol = 5e-16, create_gif=False)
+    plt.plot(t,nfft(t,h_hat)/ len(t))
+    plt.plot(x,data_raw[idx,ii] - mn[ii])
+    plt.show()
+
     inverse_mat[:,ii] = h_hat
     print(ii)
 
