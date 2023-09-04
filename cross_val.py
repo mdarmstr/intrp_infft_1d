@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 
-from infftals import *
+from infft import *
 
 df = pd.read_csv('T.Suelo.csv')
 Ln = df.shape[0]
