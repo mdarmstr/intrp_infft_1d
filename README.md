@@ -1,4 +1,4 @@
-# Inverse Interpolative Non-Uniform Fast Fourier Transform (iNFFT.py)
+# Inverse Interpolative Non-Uniform Fast Fourier Transform
 
 The type-I Discrete Non-Uniform Transform (NDFT) is defined as the following operation:
 $$h_k = \sum_{M/2-1}^{M/2} f(x_j) e^{-2\pi\mathbf{i}k\frac{x_j}{M}}$$
