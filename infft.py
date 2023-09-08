@@ -45,13 +45,19 @@ def sobk(N,a,b,g):
     
     return s
 
-def infft(x, y, N, AhA, w=1):
+def infft(x, y, N, AhA, w=1,return_adjoint=True):
     
     L,U = lu(AhA,permute_l=True)
     fk = nfft(x,y,N) @ (np.diag(w) - np.diag(w) @ L @ np.linalg.pinv(np.eye(N) + U @ np.diag(w) @ L) @ U @ np.diag(w))
-    fj = adjoint(x,fk)
-    res_abs = np.sum((y - fj)**2)
-    res_rel = np.sum(res_abs / (y ** 2))
+    
+    if return_adjoint == True:
+        fj = np.real(adjoint(x,fk))
+        res_abs = np.sum(np.abs(y - fj) ** 2)
+        res_rel = res_abs / np.sum(y ** 2)
+    else:
+        fj = None
+        res_abs = None
+        res_rel = None
 
     return fk, fj, res_abs, res_rel
 
