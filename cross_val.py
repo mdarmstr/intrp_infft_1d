@@ -37,8 +37,8 @@ dat_clean = dat[idx].copy()
 #what's the full thing look like?
 A1 = ndft_mat(t,N)
 AhA1 = A1.H @ A1
-ftot, _, _ = infft(t[idx], dat[idx] - np.mean(dat[idx]),N=N,AhA=AhA1,w=w)
-ytot = nfft(t[idx],ftot) + np.mean(dat[idx])
+ftot, _, _, _ = infft(t[idx], dat[idx] - np.mean(dat[idx]),N=N,AhA=AhA1,w=w)
+ytot = adjoint(t[idx],ftot) + np.mean(dat[idx])
 
 ps = [0.1,0.2,0.3]
 
@@ -54,8 +54,8 @@ for ii in range(len(ps)):
         t2 = t[idx].copy()
         A = ndft_mat(t2[bl_train],N)
         AhA = A.H @ A
-        f_pred, _, _ = infft(t2[bl_train], dat_clean[bl_train] - np.mean(dat_clean[bl_train]),N=N,AhA=AhA,w=w)
-        y_recn = nfft(t[idx],f_pred) + np.mean(dat_clean[bl_train])
+        f_pred, _, _, _ = infft(t2[bl_train], dat_clean[bl_train] - np.mean(dat_clean[bl_train]),N=N,AhA=AhA,w=w)
+        y_recn = adjoint(t[idx],f_pred) + np.mean(dat_clean[bl_train])
         results_rand_corr[ii,jj] = pearsonr(np.real(y_recn),np.real(ytot)).statistic
         results_rand_pred[ii,jj] = 1 - np.real(np.sum((y_recn[bl_test] - dat_clean[bl_test]) ** 2) / np.sum(dat_clean[bl_test] ** 2))
         print(jj)
@@ -88,8 +88,8 @@ for ii in range(len(ps)):
         t2 = t[idx].copy()
         A = ndft_mat(t2[bl_train],N)
         AhA = A.H @ A
-        f_pred, _, _ = infft(t2[bl_train], dat_clean[bl_train] - np.mean(dat_clean[bl_train]),N=N,AhA=AhA,w=w)
-        y_recn = nfft(t[idx],f_pred) + np.mean(dat_clean[bl_train])
+        f_pred, _, _, _ = infft(t2[bl_train], dat_clean[bl_train] - np.mean(dat_clean[bl_train]),N=N,AhA=AhA,w=w)
+        y_recn = adjoint(t[idx],f_pred) + np.mean(dat_clean[bl_train])
         results_blck_corr[ii,jj] = pearsonr(np.real(y_recn),np.real(ytot)).statistic
         results_blck_pred[ii,jj] = 1 - np.real(np.sum((y_recn[bl_test] - dat_clean[bl_test]) ** 2) / np.sum(dat_clean[bl_test] ** 2))
         print(jj)

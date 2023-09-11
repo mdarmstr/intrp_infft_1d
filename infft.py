@@ -45,10 +45,16 @@ def sobk(N,a,b,g):
     
     return s
 
-def infft(x, y, N, AhA, w=1,return_adjoint=True):
+def infft(x, y, N, AhA, w=1, return_adjoint=True, approx=False):
     
-    L,U = lu(AhA,permute_l=True)
-    fk = nfft(x,y,N) @ (np.diag(w) - np.diag(w) @ L @ np.linalg.pinv(np.eye(N) + U @ np.diag(w) @ L) @ U @ np.diag(w))
+    if w == 1:
+        Warning("No weight function input; 1 for all frequencies. Result may be unstable")
+    
+    if approx == False:
+        L,U = lu(AhA,permute_l=True)
+        fk = nfft(x,y,N) @ (np.diag(w) - np.diag(w) @ L @ np.linalg.pinv(np.eye(N) + U @ np.diag(w) @ L) @ U @ np.diag(w))
+    else:
+        fk = (nfft(x,y) @ w) @ np.linalg.pinv(len(x) * np.diag(w) + np.eye(N))
     
     if return_adjoint == True:
         fj = np.real(adjoint(x,fk))
