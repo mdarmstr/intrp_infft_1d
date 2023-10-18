@@ -13,7 +13,45 @@ Formally, this package performs the inverse adjoint non-uniform fast fourier tra
 
 $${argmin}_{\hat{h}_k}||f(x_j) - A^H\hat{h}_k||_W$$
 
+## Instructions for interpolation
 
+A basic use case can be found in `scripts/basic_usage.py`
+
+### Inputs
+To use the infft function, requires at minimum 3 inputs: 
+- `x` as a 1-dimensional numpy array with length $j$ containing discontinuous time series data normalized such that $-0.5 \leq x < 0.5$ 
+- `y` containing the responses at each time point in `x` of length $j$
+- `N` as an integer value representing the total number of $k$ Fourier coefficients
+
+and the optional inputs:
+- `AhA` the self-adjoint product of the non-uniform discrete Fourier transform matrix (see: `scripts/basic_usage.py`)
+- `w` a $k$ dimensional numpy array indicating the weight function.
+
+The `return_adjoint` argument will return the calculated values **at the points indexed by `x`**, and will not interpolate missing values.
+
+If `approx=True` the inverse transform will assume uniformity in the data, on average.
+
+### Outputs
+- `fk` the $N$ weighted Fourier coefficients
+- `fj` if `return_adjoint = True`, then the reconstructed data at the originally measured points
+- `res_abs`: absolute squared error
+- `res_rel`: relative squared error
+
+## Brief descriptions of functions
+
+- `ndft_mat(x,N)`: used to generate non-uniform self-adjoint matrix. Input `x` as discontinuous numpy array of length $j$, and `N` as the number of Fourier coefficients. From: [dependency](https://github.com/jakevdp/nfft)[^1].
+- `change_last_true_to_false(arr)`: changes the last entry of a 1-dimensional boolean array `arr` to `False`.
+- `fjr(N)`: generates the modified Fejer kernel for use as a weight function for `N` input Fourier Coefficients.
+- `sobg(z,a,b,g)`: subroutine for `sobk`
+- `sobk(N,a,b,g)`: generates the modified Sobolev kernel for user inputs `a`, `b`, and `g`. See: [reference](https://www-user.tu-chemnitz.de/~potts/paper/potts_kunis04.pdf)[^2]
+- `infft(x,y,N,AhA=None,w=None,return_adjoint=None,approx=False)`: the interpolative non-uniform fast fourier transform. See **Instructions for interpolation** for usage.
+- `adjoint(x,k)`: equivalent to an un-normalized inverse transform in the equidistant case, although note a reversal in convention from [^2]. Used to interpolate over the nominal continuous range of `x` similarly normalised to the discontinuous case. From: [dependency](https://github.com/jakevdp/nfft)[^1].
+
+# Credit
+Michael Sorochan Armstrong (mdarmstr@go.ugr.es) and José Camacho Páez (josecamacho@ugr.es) from the Computational Data Science Lab (CoDaS) at the University of Granada. Please, note that the software is provided "as is" and we do not accept any responsibility or liability. Should you find any bug or have suggestions, please contact the authors. For copyright information, please see the license file.
+
+[^1]: NFFT package written by @jakevdp [https://github.com/jakevdp/nfft](https://github.com/jakevdp/nfft)
+[^2]: Kunis, Stefan, and Daniel Potts. "Stability results for scattered data interpolation by trigonometric polynomials." SIAM Journal on Scientific Computing 29.4 (2007): 1403-1419.
 
 
 
