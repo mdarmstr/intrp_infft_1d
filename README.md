@@ -13,7 +13,6 @@ Formally, this package performs the inverse adjoint non-uniform fast fourier tra
 
 $${argmin}_{\hat{h}_k}||f(x_j) - A^H\hat{h}_k||_W$$
 
-More information will follow upon submission of the manuscript.
 
 
 

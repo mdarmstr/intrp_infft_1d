@@ -5,7 +5,7 @@ from nfft import nfft_adjoint as nfft #CHANGE IN CONVENTION
 from scipy.linalg import lu
 
 def ndft_mat(x,N):
-    """non-equispaced discrete Fourier transform Matrix"""
+    #non-equispaced discrete Fourier transform Matrix
     k = -(N // 2) + np.arange(N)
    
     return np.asmatrix(np.exp(2j * np.pi * np.outer(k,x[:,np.newaxis])).T)
@@ -45,16 +45,22 @@ def sobk(N,a,b,g):
     
     return s
 
-def infft(x, y, N, AhA, w=1, return_adjoint=True, approx=False):
+def infft(x, y, N, AhA=None, w=None, return_adjoint=False, approx=False):
     
-    if w == 1:
-        Warning("No weight function input; 1 for all frequencies. Result may be unstable")
+    if w is None:
+        w = np.ones(N) / N
+        Warning("No weight function input; normalized uniform weight for all frequencies")
+
+    if AhA is None and approx == False:
+        A = ndft_mat(x,N)
+        AhA = A.H @ A
+        Warning("No self-adjoint matrix specified; calculating based on input observations")
     
     if approx == False:
         L,U = lu(AhA,permute_l=True)
         fk = nfft(x,y,N) @ (np.diag(w) - np.diag(w) @ L @ np.linalg.pinv(np.eye(N) + U @ np.diag(w) @ L) @ U @ np.diag(w))
     else:
-        fk = (nfft(x,y) @ w) @ np.linalg.pinv(len(x) * np.diag(w) + np.eye(N))
+        fk = (nfft(x,y,N) @ np.diag(w)) @ np.linalg.pinv(len(x) * np.diag(w) + np.eye(N))
     
     if return_adjoint == True:
         fj = np.real(adjoint(x,fk))
