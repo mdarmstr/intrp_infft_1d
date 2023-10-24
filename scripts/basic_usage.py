@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from infft import *
+from intrp_infft_1d.intrp_infft_1d import *
 
 j = 1000
 N = 64
