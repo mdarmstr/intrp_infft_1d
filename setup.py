@@ -7,5 +7,10 @@ setup(name="intrp_infft_1d",
       author="Michael Sorochan Armstrong",
       author_email="mdarmstr(at)go.ugr.es",
       url='https://github.com/mdarmstr/intrp_infft_1d',
-      packages=['intrp_infft_1d']
+      packages=['intrp_infft_1d'],
+      install_requires=[
+            'nfft',
+            'scipy',
+            'numpy',
+      ]
      )
