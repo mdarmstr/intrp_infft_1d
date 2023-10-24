@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from infft import *
+from intrp_infft_1d.intrp_infft_1d import *
 plt.style.use('tableau-colorblind10')
 
 df = pd.read_csv('T.Suelo.csv')
