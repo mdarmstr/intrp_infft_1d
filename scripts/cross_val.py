@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 from scipy.stats import ttest_ind
 
-from infft import *
+from intrp_infft_1d.intrp_infft_1d import *
 
 df = pd.read_csv('T.Suelo.csv')
 Ln = df.shape[0]
