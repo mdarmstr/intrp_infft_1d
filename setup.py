@@ -6,6 +6,6 @@ setup(name="intrp_infft_1d",
       license='GNU v3.0',
       author="Michael Sorochan Armstrong",
       author_email="mdarmstr(at)go.ugr.es",
-      url='https://github.com/mdarmstr/intrp_infft_1d'
+      url='https://github.com/mdarmstr/intrp_infft_1d',
       packages=['intrp_infft_1d']
      )
