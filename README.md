@@ -50,6 +50,9 @@ If `approx=True` the inverse transform will assume uniformity in the data, on av
 # Credit
 Michael Sorochan Armstrong (mdarmstr@go.ugr.es) and José Camacho Páez (josecamacho@ugr.es) from the Computational Data Science Lab (CoDaS) at the University of Granada. Please, note that the software is provided "as is" and we do not accept any responsibility or liability. Should you find any bug or have suggestions, please contact the authors. For copyright information, please see the license file.
 
+# Installation instructions
+In progress - please see `requirements.txt` for a list of dependencies
+
 [^1]: NFFT package written by @jakevdp [https://github.com/jakevdp/nfft](https://github.com/jakevdp/nfft)
 [^2]: Kunis, Stefan, and Daniel Potts. "Stability results for scattered data interpolation by trigonometric polynomials." SIAM Journal on Scientific Computing 29.4 (2007): 1403-1419.
 
