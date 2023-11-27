@@ -48,6 +48,7 @@ plt.xticks(ticks=np.arange(len(test_fre)), labels=np.log2(test_fre))
 plt.xlabel('$log_2N$')
 plt.ylabel('$log_{10}\gamma$')
 plt.title('Reconstruction accuracy')
+plt.colorbar()
 plt.savefig('int_coeff_gamma.png')
 
 dat_clean = dat[idx].copy()
@@ -83,10 +84,9 @@ for ii in range(len(test_gma)):
 plt.imshow(results_mat,origin='upper')
 plt.yticks(ticks=np.arange(len(test_gma)), labels=np.log10(test_gma))
 plt.xticks(ticks=np.arange(len(test_fre)), labels=np.log2(test_fre))
-
 plt.xlabel('$log_2N$')
 plt.ylabel('$log_{10}\gamma$')
-plt.title('External reconstruction accuracy, $20\%$ contiguous block')
+plt.title('External reconstruction accuracy')
 plt.savefig('ext_coeff_gamma.png')
 
 
