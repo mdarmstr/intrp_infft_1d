@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from intrp_infft_1d.intrp_infft_1d import *
 
 j = 1000
-N = 64
+N = 2048
 x = np.linspace(-0.5,0.5,j,endpoint=False)
 idx = np.random.choice(a=[True,False],size=j)
 w = sobk(N,1,2,1e-2)
