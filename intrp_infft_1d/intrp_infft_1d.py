@@ -73,5 +73,47 @@ def infft(x, y, N, AhA=None, w=None, return_adjoint=False, approx=False):
 
     return fk, fj, res_abs, res_rel
 
+def ndft_mat_nd(spatial_points, num_frequencies_per_dim):
+    """
+    Constructs the non-equispaced discrete Fourier transform (NDFT) matrix for N dimensions using matmul.
+
+    Parameters:
+        spatial_points (np.ndarray): Spatial points, shape (M, D) or (M,) for 1D.
+        num_frequencies_per_dim (int or list[int]): Number of frequency points per dimension.
+                                                    Can be an integer (1D) or list for N-D.
+
+    Returns:
+        np.ndarray: Transformation matrix A of shape (M, total_frequencies).
+    """
+    # Ensure spatial_points is a numpy array
+    spatial_points = np.asarray(spatial_points)
+
+    # Handle 1D case: If num_frequencies_per_dim is an integer, convert it to a list
+    if isinstance(num_frequencies_per_dim, int):
+        num_frequencies_per_dim = [num_frequencies_per_dim]
+
+    # Handle the case where spatial_points is 1D (reshape to M x 1 for N-D compatibility)
+    if spatial_points.ndim == 1:
+        spatial_points = spatial_points[:, np.newaxis]  # Shape (M, 1)
+
+    # Extract dimensions
+    M, D = spatial_points.shape  # M: Number of spatial points, D: Dimensions
+    if len(num_frequencies_per_dim) != D:
+        raise ValueError("Length of num_frequencies_per_dim must match the dimensionality of spatial_points.")
+
+    # Generate frequency points for each dimension
+    frequency_grids = [-(N // 2) + np.arange(N) for N in num_frequencies_per_dim]
+    if D == 1:  # Special case for 1D
+        frequency_points = frequency_grids[0][:, np.newaxis]  # Shape (N, 1)
+    else:
+        frequency_points = np.array(np.meshgrid(*frequency_grids, indexing="ij")).reshape(D, -1).T  # Shape (total_frequencies, D)
+    
+    # Compute the transformation matrix
+    # Outer product in N dimensions -> dot product between spatial and frequency points using matmul
+    phase_matrix = 2j * np.pi * np.matmul(spatial_points, frequency_points.T)  # Shape (M, total_frequencies)
+    transformation_matrix = np.exp(phase_matrix)
+    
+    return transformation_matrix
+
 
 
